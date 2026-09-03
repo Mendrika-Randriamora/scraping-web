@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n-prosp
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      GENERIC_TIMEZONE: "Indian/Antananarivo"
+      TZ: "Indian/Antananarivo"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_RUNNERS_ENABLED: "true"
+      # URL interne pour joindre flaresolverr depuis n8n (via le nom du service)
+      FLARESOLVERR_URL: "http://flaresolverr:8191"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - n8n_net
+    depends_on:
+      - flaresolverr
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr-prosp
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: "info"
+    ports:
+      # Mappe le port interne 8191 vers 8989 sur l'hôte, pour tests locaux
+      - "127.0.0.1:8989:8191"
+    networks:
+      - n8n_net
+
+networks:
+  n8n_net:
+    driver: bridge
+
+volumes:
+  n8n_data:
