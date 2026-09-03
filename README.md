@@ -1,4 +1,4 @@
-# Scraping avec Flaresolverr + n8n 
+# Scraping avec Flaresolverr + n8n + docker
 
 Scraper n'importe quelle site web pour extraire les informations que vous voulez. **Flaresolverr** est un proxy qui permet de bypass les protections cloudflare(capcha, etc...)
 
