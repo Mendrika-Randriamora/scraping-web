@@ -1,0 +1,581 @@
+{
+  "name": "flaresovler",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Critere",
+        "formDescription": "Definisser vos criteres de recherches",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "secteur",
+              "defaultValue": "hotel"
+            },
+            {
+              "fieldLabel": "ville",
+              "defaultValue": "paris"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -832,
+        -16
+      ],
+      "id": "845bbbab-db0c-4a36-9f9f-80e7f188e664",
+      "name": "On form submission",
+      "webhookId": "59627182-978c-45ce-a47e-d2c23cc5aba7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "027784ee-acea-4141-a9c6-54a06b121296",
+              "name": "secteur",
+              "value": "={{ $json.secteur }}",
+              "type": "string"
+            },
+            {
+              "id": "c5e2a2f8-98c2-4c95-b781-e457434c6a45",
+              "name": "ville",
+              "value": "={{ $json.ville }}",
+              "type": "string"
+            },
+            {
+              "id": "25bf281b-5dbf-4db5-9a8e-63fc7a7744d2",
+              "name": "page",
+              "value": 112,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -656,
+        -16
+      ],
+      "id": "328f1995-2d81-4f5c-ae06-20c13fb7865d",
+      "name": "initialize request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bf57a8dd-b540-40be-8738-0fa1cde4eba1",
+              "name": "url",
+              "value": "={{ $json.solution.url }}",
+              "type": "string"
+            },
+            {
+              "id": "11cea05f-cb74-4eb6-89c7-8a2a94f3cab4",
+              "name": "response",
+              "value": "={{ $json.solution.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -240,
+        -32
+      ],
+      "id": "84c0f9bb-488c-4657-b84c-64361d2d452a",
+      "name": "keep only data that we need"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "response",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "link",
+              "cssSelector": ".bi-denomination",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            },
+            {
+              "key": "next",
+              "cssSelector": "#pagination-next",
+              "returnValue": "attribute",
+              "attribute": "title"
+            },
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        -288
+      ],
+      "id": "8e283b2d-3ff3-4510-b0b5-800f67c47d51",
+      "name": "HTML"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        336,
+        -32
+      ],
+      "id": "887bfb51-4a56-4142-ab61-9c34429a0cdb",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fbcbc634-1487-49ca-9473-07f98d4cb031",
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "cd6174e1-1b18-4631-b384-15f585e3e4a7",
+              "leftValue": "={{ $json.page }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        736,
+        -32
+      ],
+      "id": "35bb5a34-f479-4453-b04c-30d93bb2ca50",
+      "name": "Check if we have a next page"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7966cc1-7e22-4d55-8ac9-fed7e01c954d",
+              "name": "page",
+              "value": "={{ Number($json.url.match(/[?&]page=([^&]+)/)?.[1]) }}",
+              "type": "string"
+            },
+            {
+              "id": "b8706509-dc54-4f78-b390-3881922a88e7",
+              "name": "url_base",
+              "value": "={{ $json.url.replace(/[?&]page=[^&]+/, '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        112,
+        64
+      ],
+      "id": "eea6c417-513f-45d9-b29f-d77ed9b29be0",
+      "name": "Get url and page number"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b64926a9-3cd6-47ca-af9d-c23bf72c6a51",
+              "name": "next",
+              "value": "={{ $json.next }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        112,
+        -80
+      ],
+      "id": "9606e4ee-873f-43b3-afd0-90dfd0dbbd81",
+      "name": "Get next page title for verification",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst merged = items.reduce((acc, item) => ({ ...acc, ...item.json }), {});\nreturn [{ json: merged }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        -32
+      ],
+      "id": "fc83d45b-31fe-4330-a741-35b19067e6e0",
+      "name": "Put data together"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e194a0ca-5d68-4821-8ae7-b0d38524373e",
+              "name": "page",
+              "value": "={{ Number($json.page) + 1 }}",
+              "type": "number"
+            },
+            {
+              "id": "3f0cb853-bd81-43c7-9fbd-802a789a5639",
+              "name": "secteur",
+              "value": "={{ $json.url_base.match(/[?&]quoiqui=([^&]+)/)?.[1].replace(/\\n/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "e022f92e-66a0-4b25-883f-d83fbf55ab6f",
+              "name": "ville",
+              "value": "={{ $json.url_base.match(/[?&]ou=([^&]+)/)?.[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1040,
+        112
+      ],
+      "id": "f0723f2c-d885-40df-b33a-bb10b5e8a03a",
+      "name": "Prepare for next request"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "link",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -320
+      ],
+      "id": "c4dfc520-d737-4ce2-b172-066e9f1f4995",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "F7FODosSTscD7gZv",
+          "mode": "list",
+          "cachedResultName": "link",
+          "cachedResultUrl": "/projects/TAWc4DBTS94Z3gR1/datatables/F7FODosSTscD7gZv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lien": "={{ $json.link }}"
+          },
+          "matchingColumns": [
+            "lien"
+          ],
+          "schema": [
+            {
+              "id": "lien",
+              "displayName": "lien",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        -288
+      ],
+      "id": "c673021f-05ef-47fb-8196-6c84c736fcb8",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "aVKg6Gn63ewqLH2s",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/aVKg6Gn63ewqLH2s",
+          "cachedResultName": "scrap one per one"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1088,
+        -96
+      ],
+      "id": "b1289e1b-cc31-4003-bf92-653aaca954f6",
+      "name": "Call 'scrap one per one'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://flaresolverr:8191/v1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"cmd\": \"request.get\",\n  \"url\": \"https://www.pagesjaunes.fr/annuaire/chercherlespros?quoiqui={{ $json.secteur }}&ou={{ $json.ville }}&page={{ $json.page }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -480,
+        -16
+      ],
+      "id": "dabe46da-f574-4484-adbe-c581f0b071c5",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "secteur": "hotel",
+          "ville": "paris",
+          "submittedAt": "2026-09-01T20:32:43.305+03:00",
+          "formMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "initialize request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "initialize request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "keep only data that we need": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get url and page number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get next page title for verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Put data together",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get url and page number": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get next page title for verification": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Put data together": {
+      "main": [
+        [
+          {
+            "node": "Check if we have a next page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if we have a next page": {
+      "main": [
+        [
+          {
+            "node": "Prepare for next request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'scrap one per one'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for next request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "keep only data that we need",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "initialize request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "435f0c5d-bb7e-4238-9a20-ad6bde378850",
+  "meta": {
+    "instanceId": "9c37bc715447ee3600080fcc03ae9b5ae4e82b5b583773650058613dc0da9e45"
+  },
+  "nodeGroups": [],
+  "id": "rDBDTXWkXAY5qCju",
+  "tags": []
+}
