@@ -1,0 +1,16 @@
+FROM node:20-alpine
+ 
+WORKDIR /app
+ 
+COPY package*.json ./
+RUN npm install
+ 
+COPY . .
+ 
+EXPOSE 5173
+ 
+# --host 0.0.0.0 est indispensable : sans ça, le serveur Vite
+# n'écoute que sur localhost DANS le conteneur et reste injoignable
+# depuis la machine hôte, même avec le port mappé.
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+ 
