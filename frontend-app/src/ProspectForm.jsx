@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function ProspectForm() {
   const [secteur, setSecteur] = useState('');
@@ -6,6 +6,7 @@ export default function ProspectForm() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
+  const tableRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +37,19 @@ export default function ProspectForm() {
 
   // Colonnes déduites dynamiquement des clés du premier résultat
   const columns = results.length > 0 ? Object.keys(results[0]) : [];
+
+  const handleExportExcel = () => {
+    if (!tableRef.current) return;
+
+    const workbook = XLSX.utils.table_to_book(tableRef.current);
+
+    const date = new Date().toISOString().slice(0, 10);
+    const safeSecteur = secteur.trim().replace(/\s+/g, '-') || 'prospects';
+    const safeVille = ville.trim().replace(/\s+/g, '-') || 'export';
+    const filename = `${safeSecteur}_${safeVille}_${date}.xlsx`;
+
+    XLSX.writeFile(workbook, filename);
+  };
 
   return (
     <div className="container py-4">
@@ -93,26 +107,39 @@ export default function ProspectForm() {
       )}
 
       {results.length > 0 && (
-        <div className="table-responsive">
-          <table className="table table-striped table-hover align-middle">
-            <thead className="table-dark">
-              <tr>
-                {columns.map((col) => (
-                  <th key={col} scope="col">{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((item, idx) => (
-                <tr key={idx}>
+        <>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-muted">{results.length} résultat(s)</span>
+            <button
+              type="button"
+              className="btn btn-success btn-sm"
+              onClick={handleExportExcel}
+            >
+              Exporter en Excel
+            </button>
+          </div>
+
+          <div className="table-responsive">
+            <table ref={tableRef} className="table table-striped table-hover align-middle">
+              <thead className="table-dark">
+                <tr>
                   {columns.map((col) => (
-                    <td key={col}>{String(item[col] ?? '')}</td>
+                    <th key={col} scope="col">{col}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {results.map((item, idx) => (
+                  <tr key={idx}>
+                    {columns.map((col) => (
+                      <td key={col}>{String(item[col] ?? '')}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
