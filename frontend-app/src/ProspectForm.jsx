@@ -38,10 +38,19 @@ export default function ProspectForm() {
   // Colonnes déduites dynamiquement des clés du premier résultat
   const columns = results.length > 0 ? Object.keys(results[0]) : [];
 
+  // Colonnes à ne pas inclure dans l'export Excel (restent visibles dans le tableau)
+  const EXCLUDED_EXPORT_COLUMNS = ['id', 'updatedAt'];
+
   const handleExportExcel = () => {
     if (!tableRef.current) return;
 
-    const workbook = XLSX.utils.table_to_book(tableRef.current);
+    // Clone la table pour ne pas modifier l'affichage réel à l'écran
+    const clonedTable = tableRef.current.cloneNode(true);
+
+    // Supprime les cellules (en-têtes + données) des colonnes exclues, sur le clone uniquement
+    clonedTable.querySelectorAll('.excel-exclude').forEach((cell) => cell.remove());
+
+    const workbook = XLSX.utils.table_to_book(clonedTable);
 
     const date = new Date().toISOString().slice(0, 10);
     const safeSecteur = secteur.trim().replace(/\s+/g, '-') || 'prospects';
@@ -124,7 +133,13 @@ export default function ProspectForm() {
               <thead className="table-dark">
                 <tr>
                   {columns.map((col) => (
-                    <th key={col} scope="col">{col}</th>
+                    <th
+                      key={col}
+                      scope="col"
+                      className={EXCLUDED_EXPORT_COLUMNS.includes(col) ? 'excel-exclude' : undefined}
+                    >
+                      {col}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -132,7 +147,12 @@ export default function ProspectForm() {
                 {results.map((item, idx) => (
                   <tr key={idx}>
                     {columns.map((col) => (
-                      <td key={col}>{String(item[col] ?? '')}</td>
+                      <td
+                        key={col}
+                        className={EXCLUDED_EXPORT_COLUMNS.includes(col) ? 'excel-exclude' : undefined}
+                      >
+                        {String(item[col] ?? '')}
+                      </td>
                     ))}
                   </tr>
                 ))}
