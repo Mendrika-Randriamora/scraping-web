@@ -32,6 +32,28 @@ services:
       - "127.0.0.1:8989:8191"
     networks:
       - n8n_net
+  
+  react-app:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile.dev
+    container_name: frontend-prosp
+    restart: unless-stopped
+    ports:
+      # Accessible depuis la machine hôte sur http://localhost:5173
+      - "5173:5173"
+    volumes:
+      # Hot-reload : le code local est monté dans le conteneur
+      - ./frontend-app:/app
+      - /app/node_modules
+    environment:
+      # Utilisée depuis le NAVIGATEUR (sur l'hôte) -> doit passer par le port mappé,
+      # pas par le nom du service Docker (qui n'est résolvable qu'entre conteneurs)
+      VITE_N8N_WEBHOOK_URL: "http://localhost:5678/webhook/prospect-form"
+    networks:
+      - n8n_net
+    depends_on:
+      - n8n
 
 networks:
   n8n_net:
